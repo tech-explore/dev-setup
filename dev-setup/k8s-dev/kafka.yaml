@@ -1,0 +1,108 @@
+# Kafka: single node in KRaft mode (no Zookeeper), with two ways in:
+#   - pods in the cluster use          kafka:9092            (INTERNAL listener)
+#   - your IDE on Windows uses         localhost:9092        (EXTERNAL listener, via port-forward)
+# The EXTERNAL listener binds 9094 inside the pod but is ADVERTISED as localhost:9092.
+# Clients get told that address, so the local side of the port-forward must be 9092
+# (port-forward.ps1 maps localhost:9092 -> pod port 9094). To use another local port,
+# change the number in KAFKA_ADVERTISED_LISTENERS and in port-forward.ps1 together.
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+spec:
+  clusterIP: None            # headless: "kafka" resolves straight to the pod
+  publishNotReadyAddresses: true
+  selector:
+    app: kafka
+  ports:
+    - name: internal
+      port: 9092
+      targetPort: 9092
+    - name: external
+      port: 9094
+      targetPort: 9094
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+spec:
+  serviceName: kafka
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      # Stops Kubernetes injecting KAFKA_* env vars for the "kafka" Service,
+      # which the Kafka image would misread as broker settings.
+      enableServiceLinks: false
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: kafka
+          image: apache/kafka:3.9.0
+          ports:
+            - containerPort: 9092
+              name: internal
+            - containerPort: 9094
+              name: external
+          env:
+            - name: KAFKA_NODE_ID
+              value: "1"
+            - name: KAFKA_PROCESS_ROLES
+              value: broker,controller
+            - name: KAFKA_LISTENERS
+              value: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: INTERNAL://kafka:9092,EXTERNAL://localhost:9092
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: INTERNAL
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: CONTROLLER
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: 1@localhost:9093
+            - name: KAFKA_LOG_DIRS
+              value: /var/lib/kafka/data
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+              value: "1"
+            - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+              value: "0"
+            # Keep the JVM well under the container memory limit
+            - name: KAFKA_HEAP_OPTS
+              value: -Xms512m -Xmx512m
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/kafka/data
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 200m
+              memory: 768Mi
+            limits:
+              memory: 1280Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi

@@ -1,0 +1,103 @@
+# RustFS: S3-compatible object storage (Apache 2.0).
+# In the cluster: S3 API at "rustfs:9000", web console at "rustfs:9001".
+# From Windows (via port-forward.ps1): http://localhost:9000 and http://localhost:9001/rustfs/console/
+#
+# NOTE: RustFS is a young project (it reached 1.0.0 in 2026). Fine for local development;
+# check the release notes before relying on it for anything else. Because it speaks the
+# standard S3 API, your application code does not depend on it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rustfs
+  labels:
+    app: rustfs
+spec:
+  selector:
+    app: rustfs
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rustfs
+  labels:
+    app: rustfs
+spec:
+  serviceName: rustfs
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rustfs
+  template:
+    metadata:
+      labels:
+        app: rustfs
+    spec:
+      # Important: stops Kubernetes injecting RUSTFS_* variables for the "rustfs" Service
+      # (for example RUSTFS_PORT), which RustFS would misread as its own settings.
+      enableServiceLinks: false
+      initContainers:
+        # Makes the data volume writable whichever user the RustFS image runs as
+        - name: fix-permissions
+          image: busybox:1.37
+          command: ["sh", "-c", "chmod 0777 /data"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: rustfs
+          # Pinned tag. If the pull fails, check available tags on Docker Hub (rustfs/rustfs).
+          image: rustfs/rustfs:1.0.0
+          ports:
+            - containerPort: 9000
+              name: api
+            - containerPort: 9001
+              name: console
+          envFrom:
+            - secretRef:
+                name: rustfs-credentials
+          env:
+            - name: RUSTFS_VOLUMES
+              value: /data
+            - name: RUSTFS_ADDRESS
+              value: 0.0.0.0:9000
+            - name: RUSTFS_CONSOLE_ADDRESS
+              value: 0.0.0.0:9001
+            - name: RUSTFS_CONSOLE_ENABLE
+              value: "true"
+            - name: RUSTFS_OBS_LOG_DIRECTORY
+              value: /logs
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: logs
+              mountPath: /logs
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: logs
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
