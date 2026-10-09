@@ -1,4 +1,4 @@
-package com.example.demo;
+package org.xplore.devsetup.demo;
 
 import java.time.Duration;
 import java.time.Instant;

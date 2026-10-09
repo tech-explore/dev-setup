@@ -1,4 +1,4 @@
-package com.example.demo;
+package org.xplore.devsetup.demo;
 
 import java.net.URI;
 

@@ -11,8 +11,8 @@
     <relativePath/>
   </parent>
 
-  <groupId>com.example</groupId>
-  <artifactId>demo-service</artifactId>
+  <groupId>org.xplore.dev-setup</groupId>
+  <artifactId>dev-setup-demo-service</artifactId>
   <version>0.1.0</version>
   <name>demo-service</name>
   <description>Checks that Postgres, Redis, Kafka and S3 object storage (RustFS) are reachable</description>
