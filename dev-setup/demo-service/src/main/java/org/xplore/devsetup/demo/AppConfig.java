@@ -1,5 +1,10 @@
 package org.xplore.devsetup.demo;
 
+/**
+ * @author Murali Krishna Punaganti Venkata
+ * Created at: 15/10/2026(Thursday) 17:40
+ */
+
 import java.net.URI;
 
 import org.apache.kafka.clients.admin.NewTopic;
@@ -16,23 +21,23 @@ import software.amazon.awssdk.services.s3.S3Client;
 @Configuration
 public class AppConfig {
 
-    /** S3 client pointed at RustFS (any S3-compatible server works). Path-style access keeps the bucket out of the hostname. */
-    @Bean
-    S3Client s3Client(@Value("${s3.endpoint}") String endpoint,
-                      @Value("${s3.access-key}") String accessKey,
-                      @Value("${s3.secret-key}") String secretKey) {
-        return S3Client.builder()
-                .endpointOverride(URI.create(endpoint))
-                .region(Region.US_EAST_1)
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKey, secretKey)))
-                .forcePathStyle(true)
-                .build();
-    }
+  /** S3 client pointed at RustFS (any S3-compatible server works). Path-style access keeps the bucket out of the hostname. */
+  @Bean
+  S3Client s3Client(@Value("${s3.endpoint}") String endpoint,
+                    @Value("${s3.access-key}") String accessKey,
+                    @Value("${s3.secret-key}") String secretKey) {
+    return S3Client.builder()
+      .endpointOverride(URI.create(endpoint))
+      .region(Region.US_EAST_1)
+      .credentialsProvider(StaticCredentialsProvider.create(
+        AwsBasicCredentials.create(accessKey, secretKey)))
+      .forcePathStyle(true)
+      .build();
+  }
 
-    /** Created on startup if Kafka is reachable. */
-    @Bean
-    NewTopic demoTopic(@Value("${demo.topic}") String topic) {
-        return TopicBuilder.name(topic).partitions(1).replicas(1).build();
-    }
+  /** Created on startup if Kafka is reachable. */
+  @Bean
+  NewTopic demoTopic(@Value("${demo.topic}") String topic) {
+    return TopicBuilder.name(topic).partitions(1).replicas(1).build();
+  }
 }

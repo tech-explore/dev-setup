@@ -57,6 +57,9 @@ Install-IfMissing -Id 'EclipseAdoptium.Temurin.21.JDK'     -Name 'Temurin JDK 21
 # --- Containers / Kubernetes ---
 Install-IfMissing -Id 'SUSE.RancherDesktop'                -Name 'Rancher Desktop'
 
+# --- Task runner (one-command workflow: task up / down / reset / verify) ---
+Install-IfMissing -Id 'Task.Task'                          -Name 'Task (go-task)'        -Command 'task'
+
 # --- Optional native Postgres (Redis and Kafka have no good native Windows builds; use containers) ---
 if ($NativePostgres) {
     Install-IfMissing -Id 'PostgreSQL.PostgreSQL.17'       -Name 'PostgreSQL 17'         -Command 'psql'

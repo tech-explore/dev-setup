@@ -1,8 +1,13 @@
-// app/stack-check/page.tsx
-// Server component: the fetch runs on the Next.js server, so inside Kubernetes
-// BACKEND_URL can be a cluster address like http://demo-service:8080.
+// app/stack-check/page.tsx  (or src/app/stack-check/page.tsx)
+//
+// Server component. With `cacheComponents` enabled:
+//  - the route segment option `export const dynamic` is not allowed, so it is not used here;
+//  - uncached data (the fetch below) must be read inside a <Suspense> boundary.
+// The fetch runs on the Next.js server, so inside Kubernetes BACKEND_URL can be a
+// cluster address like http://demo-service:8080.
 
-export const dynamic = 'force-dynamic'; // always run the checks, never cache the page
+import { Suspense } from 'react';
+import { connection } from 'next/server';
 
 type CheckResult = {
   status: string;
@@ -13,7 +18,21 @@ type CheckResult = {
 
 const SERVICES = ['postgres', 'redis', 'kafka', 's3'] as const;
 
-export default async function StackCheckPage() {
+export default function StackCheckPage() {
+  return (
+    <main style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 640, margin: '2rem auto' }}>
+      <h1>Stack check</h1>
+      <Suspense fallback={<p>Running checks…</p>}>
+        <Results />
+      </Suspense>
+    </main>
+  );
+}
+
+async function Results() {
+  // Opt in to request-time rendering: run the checks on every request, never at build time
+  await connection();
+
   const base = process.env.BACKEND_URL ?? 'http://localhost:8080';
 
   let data: Record<string, unknown> | null = null;
@@ -28,8 +47,7 @@ export default async function StackCheckPage() {
   }
 
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 640, margin: '2rem auto' }}>
-      <h1>Stack check</h1>
+    <>
       <p>
         Backend: <code>{base}</code>
       </p>
@@ -41,7 +59,7 @@ export default async function StackCheckPage() {
           <h2>Overall: {String(data.overall)}</h2>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {SERVICES.map((name) => {
-              const r = data![name] as CheckResult | undefined;
+              const r = data[name] as CheckResult | undefined;
               const up = r?.status === 'UP';
               return (
                 <li key={name} style={{ marginBottom: '0.75rem' }}>
@@ -58,6 +76,6 @@ export default async function StackCheckPage() {
           </ul>
         </>
       )}
-    </main>
+    </>
   );
 }

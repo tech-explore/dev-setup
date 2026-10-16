@@ -1,0 +1,99 @@
+# Taskfile.yml - one-command workflow for the local dev environment.
+#
+# Install Task once:   winget install -e --id Task.Task      (the setup script does this for you)
+# Then, from this folder, run `task` to list the commands.
+#
+#   task doctor      check prerequisites and the state of the environment
+#   task up          deploy the infrastructure, wait until ready, start the port-forwards
+#   task verify      check pods, local ports and the demo-service end to end
+#   task down        stop everything but keep the data (frees memory)
+#   task reset       DELETE all data and deploy a fresh stack
+version: '3'
+
+vars:
+  NS: dev
+  PS: powershell -NoProfile -ExecutionPolicy Bypass -File
+
+tasks:
+  default:
+    desc: List the available commands
+    silent: true
+    cmds:
+      - task --list
+
+  doctor:
+    desc: Check prerequisites and the state of the environment
+    cmds:
+      - '{{.PS}} scripts/doctor.ps1'
+
+  up:
+    desc: Deploy the infrastructure, wait until it is ready, and start the port-forwards
+    preconditions:
+      - sh: kubectl get nodes -o name
+        msg: "Kubernetes is not reachable. Start Rancher Desktop with Kubernetes enabled, then run 'task doctor'."
+    cmds:
+      - kubectl apply -k k8s-dev
+      - task: wait
+      - task: forward
+      - task: status
+
+  wait:
+    desc: Wait until Postgres, Redis, Kafka and RustFS are ready
+    cmds:
+      - for: [postgres, redis, kafka, rustfs]
+        cmd: kubectl -n {{.NS}} rollout status statefulset/{{.ITEM}} --timeout=300s
+
+  forward:
+    desc: Start the port-forwards (Postgres 5433, Redis 6379, Kafka 9092, RustFS 9000 and 9001)
+    cmds:
+      - '{{.PS}} k8s-dev/port-forward.ps1'
+
+  forward:stop:
+    desc: Stop all kubectl port-forwards
+    cmds:
+      - '{{.PS}} k8s-dev/port-forward.ps1 -Stop'
+
+  status:
+    desc: Show the pods in the dev namespace
+    cmds:
+      - kubectl -n {{.NS}} get pods
+
+  verify:
+    desc: Check pods, local ports and the demo-service /check endpoint
+    cmds:
+      - '{{.PS}} scripts/verify.ps1'
+
+  down:
+    desc: Stop everything but keep the data (frees memory). Run 'task up' to start again.
+    cmds:
+      - task: forward:stop
+      - kubectl -n {{.NS}} scale statefulset --all --replicas=0
+      - cmd: kubectl -n {{.NS}} scale deployment --all --replicas=0
+        ignore_error: true
+
+  reset:
+    desc: DELETE the dev namespace and ALL data, then deploy a fresh stack
+    prompt: This deletes the dev namespace, including ALL data and any app pods. Continue?
+    cmds:
+      - task: forward:stop
+      - kubectl delete -k k8s-dev --ignore-not-found
+      - task: up
+
+  demo:deploy:
+    desc: Build the demo-service image and deploy it as a pod
+    cmds:
+      - docker build -t demo-service:0.1.0 demo-service
+      - kubectl apply -f demo-service/k8s/demo-service.yaml
+      - kubectl -n {{.NS}} rollout restart deployment/demo-service
+      - kubectl -n {{.NS}} rollout status deployment/demo-service --timeout=300s
+
+  logs:
+    desc: "Follow a pod's logs. Usage: task logs -- kafka-0"
+    cmds:
+      - kubectl -n {{.NS}} logs -f --tail=100 {{.CLI_ARGS}}
+
+  psql:
+    desc: Open a psql shell in the Postgres pod
+    interactive: true
+    cmds:
+      - kubectl -n {{.NS}} exec -it postgres-0 -- psql -U dev -d appdb
