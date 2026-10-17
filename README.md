@@ -14,8 +14,8 @@ This is a local development setup on windows for Springboot and Nextjs based mic
 - Files (typescript) incase developer wants to have a visual interface to demo app. This file(s) can be added to your own Next.js 16 project
 - Documents:
   - [Overview](./dev-setup/Overview.md)
-  - [Setup manual](./dev-setup/docs/Local Dev Environment Setup Manual.md)
+  - [Setup manual](./dev-setup/docs/Local-Dev-Environment-Setup-Manual.md)
   - [Architecture and design](./dev-setup/docs/architecture/architecture-and-networking.md)
-  - [Performance and optimization guide](./dev-setup/docs/Local Dev Environment Performance Optimization Guide.md)
+  - [Performance and optimization guide](./dev-setup/docs/Local-Dev-Environment-Performance-Optimization-Guide.md)
   - [Benefits of a common  local development setup](./dev-setup/docs/benefits-of-a-common-dev-setup.md)
   - [Improvements roadmap](./dev-setup/docs/improvement-roadmap.md)

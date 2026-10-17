@@ -29,18 +29,16 @@ dev-setup/
   frontend/                 files to add to your own Next.js 16 project
 ```
 
-Unzip it to `C:\dev-setup\` so the paths in the manual match.
-
 ## Quick start
 
 1. Open PowerShell as Administrator and run the setup script, then reboot if asked:
    `powershell -ExecutionPolicy Bypass -File .\setup-dev.ps1`
    (It also installs Task. If that package ID fails, check `winget search task`.)
 2. Start Rancher Desktop (dockerd engine, Kubernetes enabled).
-3. In a new terminal, in `C:\dev-setup`:
+3. In a new terminal, in `C:\dev-setup\dev-setup`:
 
 | Command | What it does |
-|---|---|
+| --- | --- |
 | `task doctor` | Checks prerequisites and the state of the environment |
 | `task up` | Deploys the infrastructure, waits until it is ready, starts the port-forwards |
 | `task verify` | Checks pods, local ports and the demo-service `/check` endpoint |
@@ -58,7 +56,7 @@ Without Task, the plain commands are in the setup manual (`kubectl apply -k k8s-
 ## Local addresses (port-forwards running)
 
 | Service | Address | Credentials |
-|---|---|---|
+| --- | --- | --- |
 | Postgres | localhost:5433 | dev / dev, database appdb |
 | Redis | localhost:6379 | none |
 | Kafka | localhost:9092 | none |

@@ -1,6 +1,6 @@
 # Local Dev Environment: Performance Optimization Guide
 
-Ways to make the local environment lighter and faster. Everything here is optional. Apply one change at a time, measure the effect, and keep what helps. Companion documents: the [setup manual](https://claude.ai/code/artifact/02b56856-180d-462e-ad6e-a537bfaaa73a) and the [architecture document](https://claude.ai/code/artifact/b2bfc8c4-e372-4998-ab50-89a1255541ff).
+Ways to make the local environment lighter and faster. Everything here is optional. Apply one change at a time, measure the effect, and keep what helps. Companion documents: the [setup manual](./Local-Dev-Environment-Setup-Manual.md) and the [architecture document](./architecture/architecture-and-networking.md).
 
 ## 1. Changes at a glance
 

@@ -1,6 +1,6 @@
 # Local Dev Environment: Setup Manual
 
-Step-by-step instructions to build the whole local environment on Windows: Postgres, Redis, Kafka and RustFS (S3-compatible object storage) running in a local Kubernetes cluster, a demo Java service, and a Next.js frontend page that proves everything is connected. For diagrams and networking background, see the [architecture document](https://claude.ai/code/artifact/b2bfc8c4-e372-4998-ab50-89a1255541ff).
+Step-by-step instructions to build the whole local environment on Windows: Postgres, Redis, Kafka and RustFS (S3-compatible object storage) running in a local Kubernetes cluster, a demo Java service, and a Next.js frontend page that proves everything is connected. For diagrams and networking background, see the [architecture document](./architecture/architecture-and-networking.md).
 
 ## 0. What you will end up with
 
@@ -41,7 +41,7 @@ C:\dev-setup\
     k8s\frontend.yaml
 ```
 
-Three frontend files go inside your own Next.js project (step 7): `Dockerfile` and `.dockerignore` in the project root, and `page.tsx` in `app\stack-check\`. The `docker-compose.yml` from earlier is no longer needed, because the infrastructure now runs in Kubernetes.
+Three frontend files go inside your own Next.js project (step 7): `Dockerfile` and `.dockerignore` in the project root, and `page.tsx` in `app\stack-check\`. The` docker-compose.yml` from earlier is no longer needed, because the infrastructure now runs in Kubernetes.
 
 ## 2. Step 1: install the base tools
 
@@ -85,10 +85,10 @@ Node.js is installed later, in step 7.
 2. In the first-run dialog choose **dockerd (moby)** as the container engine, set **Configure PATH** to Automatic, and keep **Kubernetes enabled**.
 3. Wait until the progress bar at the bottom finishes. The first start downloads and sets up its own WSL distro, which takes several minutes.
 4. Open Preferences and confirm:
-   - **Container Engine:** dockerd (moby).
-   - **Kubernetes:** enabled.
-   - **WSL, Integrations:** tick your Ubuntu distro.
-   - **Virtual Machine, Memory:** 6 GB or more if your machine allows it.
+  - **Container Engine:** dockerd (moby).
+  - **Kubernetes:** enabled.
+  - **WSL, Integrations:** tick your Ubuntu distro.
+  - **Virtual Machine, Memory:** 6 GB or more if your machine allows it.
 5. In a **new** PowerShell window, verify:
 
 ```powershell
