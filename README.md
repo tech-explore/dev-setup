@@ -1,9 +1,11 @@
 # Local Development Setup
 
-Having a dedicated local development setup helps in:
-- maintaining consistency with software development
-- creating a common development environment across the teams/organisations
-- ... many more
+Having a common local development setup helps in:
+- **onboarding:** faster
+- **consistency:** maintaining consistency with software development
+- **quality:** earlier end-to-end testing
+- **maintenance:** environment as a code resides in a git and hence easy to maintain
+- [... many more](./dev-setup/docs/benefits-of-a-common-dev-setup.md)
 
 This is a local development setup on windows for Springboot and Nextjs based microservice or Saas development. This package contains:
 - Powershell scripts for installing needed tools
