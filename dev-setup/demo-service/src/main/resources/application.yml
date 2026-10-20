@@ -1,0 +1,31 @@
+# Defaults work when running on your machine with port-forward.ps1 active.
+# Inside Kubernetes, the Deployment overrides them with environment variables.
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5433/appdb}
+    username: ${POSTGRES_USER:dev}
+    password: ${POSTGRES_PASSWORD:dev}
+    hikari:
+      # Start even if Postgres is down, so /check can report it instead of the app crashing
+      initialization-fail-timeout: -1
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+
+# Object storage (RustFS, or any S3-compatible server)
+s3:
+  endpoint: ${S3_ENDPOINT:http://localhost:9000}
+  access-key: ${S3_ACCESS_KEY:rustfsadmin}
+  secret-key: ${S3_SECRET_KEY:rustfsadmin}
+  bucket: ${S3_BUCKET:demo-bucket}
+
+demo:
+  topic: demo-events
